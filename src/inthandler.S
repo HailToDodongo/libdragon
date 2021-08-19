@@ -129,6 +129,10 @@ inthandler:
 	mfc0 k1, C0_CAUSE
 	sw k1, STACK_CR(k0)
 
+	# Set standard GP register, in case we were called from assembly
+	# code that has temporarily used GP as scratch register.
+	la gp, _gp
+
 	move sp, k0
 
 	andi t0, k1, 0xff
@@ -138,6 +142,9 @@ inthandler:
 	nop
 
 thread_schedule:
+	# Call tkreadh_syscall_schedule, passing a pointer to the exception stack
+	# (reg_block_t in C). As explained above, this is found on the stack
+	# after the 32-bytes argument slot required by MIPS C ABI.
 	addiu a0, sp, 32
 	jal __kthread_syscall_schedule
 	nop
