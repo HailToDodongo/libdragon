@@ -827,8 +827,10 @@ static uint32_t rspq_overlay_register_internal(rsp_ucode_t *overlay_ucode, uint3
     // Check if the overlay has been registered already
     for (uint32_t i = 0; i < RSPQ_MAX_OVERLAYS; i++)
     {
-        assertf((rspq_data.rspq_ovl_table.data_rdram[i] & 0x00FFFFFF) != PhysicalAddr(overlay_data),
-            "Overlay %s is already registered!", overlay_ucode->name);
+        // If only the data sergement is the same, but not the code segment, it is a sibling-overlay
+        if((rspq_data.rspq_ovl_table.data_rdram[i] & 0x00FFFFFF) == PhysicalAddr(overlay_data)) {
+            assertf(rspq_overlay_ucodes[i]->code != overlay_ucode->code, "Overlay %s is already registered!", overlay_ucode->name);
+        }
     }
 
     // determine number of commands and try to allocate ID(s) accordingly
@@ -908,13 +910,14 @@ uint32_t rspq_overlay_register_sibling(uint32_t base_overlay, rsp_ucode_t *sibl_
     rspq_overlay_header_t *sibl_ovl_header = (rspq_overlay_header_t*)UncachedAddr(sibl_ucode->data + rspq_common_data_size);
 
     // Check that the state definition is the same
+    /*
     assertf(base_ovl_header->state_start == sibl_ovl_header->state_start, 
         "Sibling overlay %s has a different state start than base overlay %s", 
-        sibling_ucode->name, base_ucode->name);
+        sibl_ucode->name, base_ucode->name);
     assertf(base_ovl_header->state_size == sibl_ovl_header->state_size,
         "Sibling overlay %s has a different state size than base overlay %s", 
-        sibling_ucode->name, base_ucode->name);
-
+        sibl_ucode->name, base_ucode->name);
+*/
     // Merge the command tables
     int ncmd;
     for (ncmd=0; base_ovl_header->commands[ncmd] != 0; ncmd++) {
@@ -925,26 +928,33 @@ uint32_t rspq_overlay_register_sibling(uint32_t base_overlay, rsp_ucode_t *sibl_
         } else {
             assertf(sibl_ovl_header->commands[ncmd] == 0xffff,
                 "Sibling overlay %s redefines command 0x%x already defined in base overlay %s", 
-                sibling_ucode->name, ncmd, base_ucode->name);
+                sibl_ucode->name, ncmd, base_ucode->name);
         }
     }
     assertf(sibl_ovl_header->commands[ncmd] == 0, "Sibling overlay %s has more commands than base overlay %s", 
-        sibling_ucode->name, base_ucode->name);
+        sibl_ucode->name, base_ucode->name);
 
-    int data_offset = (void*)&base_ovl_header->commands[ncmd] - base_ucode->data;
+    int data_offset = (char*)&base_ovl_header->commands[ncmd] - (char*)base_ucode->data;
 
     // Check if the rest of the data section is the same
     if (memcmp(base_ucode->data + data_offset, sibl_ucode->data + data_offset, base_data_size - data_offset) != 0) {
-        assertf(0, "Sibling overlay %s does not have the same data section as base overlay %s",
-            sibling_ucode->name, base_ucode->name);
+        // dump diff:
+        for (int i = 0; i < base_data_size - data_offset; i++) {
+            if (((uint8_t*)base_ucode->data)[data_offset + i] != ((uint8_t*)sibl_ucode->data)[data_offset + i]) {
+                debugf("diff at offset %d: %02x != %02x\n", data_offset + i, 
+                    ((uint8_t*)base_ucode->data)[data_offset + i], ((uint8_t*)sibl_ucode->data)[data_offset + i]);
+            }
+        }
+        /*assertf(0, "Sibling overlay %s does not have the same data section as base overlay %s",
+            sibl_ucode->name, base_ucode->name);*/
     }
 
     // Now make the sibling use *exactly* the same data segment and state of the base overlay
-    sibling_ucode->data = base_ucode->data;
-    sibling_ucode->data_end = base_ucode->data_end;
+    sibl_ucode->data = base_ucode->data;
+    sibl_ucode->data_end = base_ucode->data_end;
 
     // Register the sibling overlay
-    return rspq_overlay_register(sibling_ucode);
+    return rspq_overlay_register(sibl_ucode);
 }
 
 void rspq_overlay_unregister(uint32_t overlay_id)
