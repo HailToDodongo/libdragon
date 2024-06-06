@@ -181,6 +181,7 @@ typedef struct __attribute__((packed)) {
  */
 typedef struct __attribute__((packed)) {
     uint32_t data_rdram[RSPQ_MAX_OVERLAYS];     ///< Packed RDRAM address of data segment and size
+    uint32_t code_rdram[RSPQ_MAX_OVERLAYS];     ///< Packed RDRAM address of code segment and size
     uint8_t idmap[RSPQ_MAX_OVERLAYS];           ///< Map of overlay IDs to base IDs
 } rspq_ovl_table_t;
 

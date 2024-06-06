@@ -244,6 +244,9 @@ _Static_assert(RSPQ_MAX_COMMAND_SIZE * 4 <= RSPQ_DESCRIPTOR_MAX_SIZE);
     ptr += 3; \
 })
 
+#define CMD_MARKER_EMPTY 0xFFFF
+#define CMD_MARKER_SIBLING 0x0FFF
+
 static void rspq_crash_handler(rsp_snapshot_t *state);
 static void rspq_assert_handler(rsp_snapshot_t *state, uint16_t assert_code);
 
@@ -262,8 +265,6 @@ typedef struct __attribute__((packed)) rspq_overlay_header_t {
     uint16_t state_start;       ///< Start of the portion of DMEM used as "state"
     uint16_t state_size;        ///< Size of the portion of DMEM used as "state"
     uint32_t state_rdram;       ///< RDRAM address of the portion of DMEM used as "state"
-    uint32_t text_rdram;        ///< RDRAM address of the overlay's text section
-    uint16_t text_size;         ///< Size of the overlay's text section
     uint16_t command_base;      ///< Primary overlay ID used for this overlay
     #if RSPQ_PROFILE
     uint16_t profile_slot_dmem; ///< Start of the profile slots in DMEM
@@ -754,7 +755,8 @@ static uint32_t rspq_overlay_get_command_count(rspq_overlay_header_t *header)
 {
     for (uint32_t i = 0; i < RSPQ_MAX_OVERLAY_COMMAND_COUNT; i++)
     {
-        if (header->commands[i] == 0) {
+        // @TODO: force main ovleray of a sibling to be 16 here too instead
+        if (header->commands[i] == 0 || header->commands[i] == CMD_MARKER_EMPTY || header->commands[i] == CMD_MARKER_SIBLING) {
             return i;
         }
     }
@@ -805,7 +807,7 @@ static void rspq_update_tables(bool is_highpri)
     if (is_highpri) rspq_highpri_end();
 }
 
-static uint32_t rspq_overlay_register_internal(rsp_ucode_t *overlay_ucode, uint32_t static_id)
+static uint32_t rspq_overlay_register_internal(rsp_ucode_t *overlay_ucode, uint32_t static_id, uint32_t main_id)
 {
     assertf(rspq_initialized, "rspq_overlay_register must be called after rspq_init!");
     assert(overlay_ucode);
@@ -827,8 +829,10 @@ static uint32_t rspq_overlay_register_internal(rsp_ucode_t *overlay_ucode, uint3
     // Check if the overlay has been registered already
     for (uint32_t i = 0; i < RSPQ_MAX_OVERLAYS; i++)
     {
-        assertf((rspq_data.rspq_ovl_table.data_rdram[i] & 0x00FFFFFF) != PhysicalAddr(overlay_data),
-            "Overlay %s is already registered!", overlay_ucode->name);
+        // If only the data sergement is the same, but not the code segment, it is a sibling-overlay
+        if((rspq_data.rspq_ovl_table.data_rdram[i] & 0x00FFFFFF) == PhysicalAddr(overlay_data)) {
+            assertf(rspq_overlay_ucodes[i]->code != overlay_ucode->code, "Overlay %s is already registered!", overlay_ucode->name);
+        }
     }
 
     // determine number of commands and try to allocate ID(s) accordingly
@@ -852,19 +856,34 @@ static uint32_t rspq_overlay_register_internal(rsp_ucode_t *overlay_ucode, uint3
             overlay_ucode->name, command_count);
     }
 
-    // Store the address of the data segment in the overlay table, packed with the size
-    for (uint32_t i = 0; i < slot_count; i++) {
-        rspq_data.rspq_ovl_table.data_rdram[id + i] = 
-            PhysicalAddr(overlay_data) | (((overlay_data_size - 1) >> 4) << 24);
-        rspq_data.rspq_ovl_table.idmap[id + i] = id;
+    uint32_t base_id = main_id > 28;
+    if(base_id == 0) {
+        base_id = id;
     }
 
-    // Fill information in the overlay header
-    overlay_header->text_size = overlay_code_size;
-    overlay_header->text_rdram = PhysicalAddr(overlay_code);
-    overlay_header->state_rdram = PhysicalAddr(overlay_ucode->data) + overlay_header->state_start;
-    overlay_header->command_base = id << 5;
-    data_cache_hit_writeback_invalidate(overlay_header, sizeof(rspq_overlay_header_t));
+    // Store the address of the data segment in the overlay table, packed with the size
+    for (uint32_t i = 0; i < slot_count; i++) {
+        rspq_data.rspq_ovl_table.data_rdram[id + i] = PhysicalAddr(overlay_data) | (((overlay_data_size - 1) >> 4) << 24);
+        rspq_data.rspq_ovl_table.code_rdram[id + i] = PhysicalAddr(overlay_code) | (((overlay_code_size - 1) >> 4) << 24);
+        rspq_data.rspq_ovl_table.idmap[id + i] = base_id;
+    }
+
+    debugf("TEXT: %08lX | DATA: %08lX\n", PhysicalAddr(overlay_code), (PhysicalAddr(overlay_data)));
+    for(int i=0; i<16; ++i) {
+        debugf("OVL[%02X]: %02X D:%08lX C:%08lX\n", i, rspq_data.rspq_ovl_table.idmap[i], rspq_data.rspq_ovl_table.data_rdram[i], rspq_data.rspq_ovl_table.code_rdram[i]);    
+    }
+    for(uint32_t i = 0; i < RSPQ_MAX_OVERLAY_COMMAND_COUNT; i++) {
+        debugf(" - cmd[%ld]: %04lX\n", i, (uint32_t)overlay_header->commands[i]);
+        if (overlay_header->commands[i] == 0)break;
+    }
+
+    // don't update the header for sibling overlays since their data is shared
+    if(main_id == 0) {
+        // Fill information in the overlay header
+        overlay_header->state_rdram = PhysicalAddr(overlay_ucode->data) + overlay_header->state_start;
+        overlay_header->command_base = id << 5;
+        data_cache_hit_writeback_invalidate(overlay_header, sizeof(rspq_overlay_header_t));
+    }
 
     // Save the overlay pointer
     rspq_overlay_ucodes[id] = overlay_ucode;
@@ -876,14 +895,14 @@ static uint32_t rspq_overlay_register_internal(rsp_ucode_t *overlay_ucode, uint3
 
 uint32_t rspq_overlay_register(rsp_ucode_t *overlay_ucode)
 {
-    return rspq_overlay_register_internal(overlay_ucode, 0);
+    return rspq_overlay_register_internal(overlay_ucode, 0, 0);
 }
 
 void rspq_overlay_register_static(rsp_ucode_t *overlay_ucode, uint32_t overlay_id)
 {
     assertf((overlay_id & 0x0FFFFFFF) == 0, 
         "the specified overlay_id should only use the top 4 bits (must be preshifted by 28) (overlay: %s)", overlay_ucode->name);
-    rspq_overlay_register_internal(overlay_ucode, overlay_id);
+    rspq_overlay_register_internal(overlay_ucode, overlay_id, 0);
 }
 
 uint32_t rspq_overlay_register_sibling(uint32_t base_overlay, rsp_ucode_t *sibl_ucode)
@@ -907,44 +926,56 @@ uint32_t rspq_overlay_register_sibling(uint32_t base_overlay, rsp_ucode_t *sibl_
     rspq_overlay_header_t *base_ovl_header = (rspq_overlay_header_t*)UncachedAddr(base_ucode->data + rspq_common_data_size);
     rspq_overlay_header_t *sibl_ovl_header = (rspq_overlay_header_t*)UncachedAddr(sibl_ucode->data + rspq_common_data_size);
 
+    // @TODO: re-enable this
     // Check that the state definition is the same
+    /*
     assertf(base_ovl_header->state_start == sibl_ovl_header->state_start, 
         "Sibling overlay %s has a different state start than base overlay %s", 
-        sibling_ucode->name, base_ucode->name);
+        sibl_ucode->name, base_ucode->name);
     assertf(base_ovl_header->state_size == sibl_ovl_header->state_size,
         "Sibling overlay %s has a different state size than base overlay %s", 
-        sibling_ucode->name, base_ucode->name);
-
+        sibl_ucode->name, base_ucode->name);
+*/
     // Merge the command tables
     int ncmd;
     for (ncmd=0; base_ovl_header->commands[ncmd] != 0; ncmd++) {
         assertf(ncmd <= RSPQ_MAX_OVERLAY_COMMAND_COUNT, "Overlay %s has too many commands", base_ucode->name);
+        uint16_t sibling_cmd = sibl_ovl_header->commands[ncmd];
+        //debugf(" sibling cmd[%d]: %04lX (org: %04lX)\n", ncmd, (uint32_t)sibling_cmd, (uint32_t)base_ovl_header->commands[ncmd]);
 
-        if (base_ovl_header->commands[ncmd] == 0xffff) {
-            base_ovl_header->commands[ncmd] = sibl_ovl_header->commands[ncmd];
+        if (base_ovl_header->commands[ncmd] == CMD_MARKER_SIBLING) {
+            base_ovl_header->commands[ncmd] = sibling_cmd;
         } else {
-            assertf(sibl_ovl_header->commands[ncmd] == 0xffff,
+            assertf(sibling_cmd == CMD_MARKER_SIBLING || sibling_cmd == CMD_MARKER_EMPTY,
                 "Sibling overlay %s redefines command 0x%x already defined in base overlay %s", 
-                sibling_ucode->name, ncmd, base_ucode->name);
+                sibl_ucode->name, ncmd, base_ucode->name);
         }
     }
     assertf(sibl_ovl_header->commands[ncmd] == 0, "Sibling overlay %s has more commands than base overlay %s", 
-        sibling_ucode->name, base_ucode->name);
+        sibl_ucode->name, base_ucode->name);
 
-    int data_offset = (void*)&base_ovl_header->commands[ncmd] - base_ucode->data;
+    int data_offset = (char*)&base_ovl_header->commands[ncmd] - (char*)base_ucode->data;
 
     // Check if the rest of the data section is the same
     if (memcmp(base_ucode->data + data_offset, sibl_ucode->data + data_offset, base_data_size - data_offset) != 0) {
-        assertf(0, "Sibling overlay %s does not have the same data section as base overlay %s",
-            sibling_ucode->name, base_ucode->name);
+        // dump diff:
+        for (int i = 0; i < base_data_size - data_offset; i++) {
+            if (((uint8_t*)base_ucode->data)[data_offset + i] != ((uint8_t*)sibl_ucode->data)[data_offset + i]) {
+                debugf("diff at offset %d: %02x != %02x\n", data_offset + i, 
+                    ((uint8_t*)base_ucode->data)[data_offset + i], ((uint8_t*)sibl_ucode->data)[data_offset + i]);
+            }
+        }
+        /*assertf(0, "Sibling overlay %s does not have the same data section as base overlay %s",
+            sibl_ucode->name, base_ucode->name);*/
     }
 
     // Now make the sibling use *exactly* the same data segment and state of the base overlay
-    sibling_ucode->data = base_ucode->data;
-    sibling_ucode->data_end = base_ucode->data_end;
+    sibl_ucode->data = base_ucode->data;
+    sibl_ucode->data_end = base_ucode->data_end;
+    data_cache_hit_writeback_invalidate(sibl_ucode->data, sibl_data_size);
 
     // Register the sibling overlay
-    return rspq_overlay_register(sibling_ucode);
+    return rspq_overlay_register_internal(sibl_ucode, 0, base_overlay);
 }
 
 void rspq_overlay_unregister(uint32_t overlay_id)

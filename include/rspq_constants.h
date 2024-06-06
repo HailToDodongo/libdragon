@@ -2,7 +2,7 @@
 #define __RSPQ_INTERNAL
 
 #define RSPQ_DEBUG                     0
-#define RSPQ_PROFILE                   1
+#define RSPQ_PROFILE                   0
 
 #define RSPQ_DRAM_LOWPRI_BUFFER_SIZE   0x200   ///< Size of each RSPQ RDRAM buffer for lowpri queue (in 32-bit words)
 #define RSPQ_DRAM_HIGHPRI_BUFFER_SIZE  0x80    ///< Size of each RSPQ RDRAM buffer for highpri queue (in 32-bit words)
@@ -19,9 +19,9 @@
 #define RSPQ_DESCRIPTOR_MAX_SIZE       RSPQ_DESCRIPTOR_SIZE_MASK
 
 #if RSPQ_PROFILE
-#define RSPQ_OVERLAY_HEADER_SIZE     18         ///< Internal overlay header size in bytes
+#define RSPQ_OVERLAY_HEADER_SIZE     12         ///< Internal overlay header size in bytes
 #else
-#define RSPQ_OVERLAY_HEADER_SIZE     16         ///< Internal overlay header size in bytes
+#define RSPQ_OVERLAY_HEADER_SIZE     10         ///< Internal overlay header size in bytes
 #endif
 
 /** Minimum / maximum size of a block's chunk (contiguous memory buffer) */
