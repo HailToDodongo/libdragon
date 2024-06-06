@@ -90,11 +90,7 @@ _RSPQ_OVERLAY_HEADER:
     .short _RSPQ_SAVED_STATE_END - _RSPQ_SAVED_STATE_START - 1
     # 4: state RDRAM address (filled in by C code)
     .long 0
-    # 8: text RDRAM address (filled in by C code)
-    .long 0
-    # 12: text size (filled in by C code)
-    .short 0
-    # 14: command base (filled in by C code)
+    # 8: command base (filled in by C code)
     .short 0
     #if RSPQ_PROFILE
     .short _RSPQ_OVL_PROFILESLOT - _data_start
@@ -108,11 +104,9 @@ _RSPQ_OVERLAY_COMMAND_TABLE:
 #define RSPQ_OH_STATESTART   0
 #define RSPQ_OH_STATESIZE    2
 #define RSPQ_OH_STATEADDR    4
-#define RSPQ_OH_TEXTADDR     8
-#define RSPQ_OH_TEXTSIZE     12
-#define RSPQ_OH_CMDBASE      14
+#define RSPQ_OH_CMDBASE      8
 #if RSPQ_PROFILE
-#define RSPQ_OH_PROFILESLOT  16
+#define RSPQ_OH_PROFILESLOT  10
 #endif
 
 ########################################################
@@ -205,10 +199,6 @@ _RSPQ_SAVED_STATE_END:
     .short (\function - _start) >> 2 | ((\size) & RSPQ_DESCRIPTOR_SIZE_MASK) << 8
 .endm
 
-.macro RSPQ_DefineSiblingCommand
-    .short 0xffff
-.endm
-
 ########################################################
 # RSPQ_EndOverlayHeader
 # 
@@ -297,7 +287,8 @@ _data_start:
 
 # Overlay table. Contains packed pointer to overlay data segment in RDRAM 
 # and overlay data size
-RSPQ_OVERLAY_TABLE:           .ds.l RSPQ_MAX_OVERLAYS
+RSPQ_OVL_DATA_TABLE:          .ds.l RSPQ_MAX_OVERLAYS
+RSPQ_OVL_CODE_TABLE:          .ds.l RSPQ_MAX_OVERLAYS
 RSPQ_OVERLAY_IDMAP:           .ds.b RSPQ_MAX_OVERLAYS
 
 # Save slots for RDRAM addresses used during nested lists calls.
@@ -361,18 +352,14 @@ RDPQ_DEBUG:                  .byte 0
 # End of RDPQ shared state
 ################################################################
 
-                              .byte 0    # explicit padding byte (would be emitted by the assembler anyway)
+# ID of the current overlay
+RSPQ_CURRENT_OVL:             .byte 0
 
 # RDRAM address of the current command list.
 RSPQ_RDRAM_PTR:               .long 0
 
-# Pointer to save state of the current overlay
-RSPQ_CURRENT_OVL_STATEADDR:   .long 0
-
-# ID of the current overlay
-RSPQ_CURRENT_OVL:             .half 0
-
 #if RSPQ_PROFILE
+.align 2
 RSPQ_PROFILE_CUR_SLOT:        .long 0
 RSPQ_PROFILE_START_TIME:      .long 0
 RSPQ_PROFILE_DATA:
@@ -466,16 +453,17 @@ rspq_fetch_buffer_with_ptr:
 RSPQCmd_Noop:     # noop -> repeat the loop
     .func RSPQ_Loop
 RSPQ_Loop:
-    #define ovl_index       t4
+    #define ovl_index_base       t4
     #define cmd_index       t5    // referenced in rspq_assert_invalid_overlay
     #define cmd_desc        t6
+    #define ovl_index   t7
 
 #if RSPQ_PROFILE
     mfc0 t0, COP0_DP_CLOCK
     lw s0, %lo(RSPQ_PROFILE_CUR_SLOT)
     lw t1, %lo(RSPQ_PROFILE_START_TIME)
     bltz s0, 1f
-    li ovl_index, 0
+    li ovl_index_base, 0
     jal RSPQ_ProfileAccumulate
     subu t0, t1
     # Reset the current slot so we don't end up accumulating to it again. 
@@ -498,35 +486,36 @@ RSPQ_Loop:
     beq t2, t0, rspq_switch_highpri
 
     # Index into overlay table
-    srl t0, a0, 28
+    srl ovl_index, a0, 28
 
     # Index into command table
     srl cmd_index, a0, 23
     andi cmd_index, 0x1FE
 
     # Overlay 0 is reserved for internal commands
-    beqz t0, rspq_execute_command
+    beqz ovl_index, rspq_execute_command
     # Load command descriptor from internal command table if using the default overlay.
     # Otherwise, cmd_desc will be overwritten further down
     lhu cmd_desc, %lo(RSPQ_INTERNAL_COMMAND_TABLE)(cmd_index)
 
-    lhu t1, %lo(RSPQ_CURRENT_OVL)
+    lbu t1, %lo(RSPQ_CURRENT_OVL)
 
     # Map overlay index through the ID map. This allows to resolve ID for
     # overlays that spans multiple IDs.
-    lbu ovl_index, RSPQ_OVERLAY_IDMAP(t0)
+    lbu ovl_index_base, RSPQ_OVERLAY_IDMAP(ovl_index)
 
     # Load the command base (index of the first command of the overlay).
-    lhu t0, %lo(_ovl_data_start) + 14
+    lhu t0, %lo(_ovl_data_start) + RSPQ_OH_CMDBASE
 
     # <stall cycle> Initial vshift in preparation to running the command
     lpv vshift8,  0x00,zero
 
     #if RSPQ_DEBUG
-    assert_ne ovl_index, 0, ASSERT_INVALID_OVERLAY
+    assert_ne ovl_index_base, 0, ASSERT_INVALID_OVERLAY
     #endif
     
-    # Check if the requested overlay is already in memory
+    # Check if the requested overlay is the current one.
+    # Otherwise it's possible a new code or data section must be loaded
     bne ovl_index, t1, rspq_load_overlay
 
 rspq_overlay_loaded:
@@ -589,44 +578,52 @@ rspq_execute_command:
     jr cmd_desc
     li ra, %lo(RSPQ_Loop)
 
-
 rspq_load_overlay:
 #if RSPQ_PROFILE
     mfc0 t3, COP0_DP_CLOCK
 #endif
-
-    lw s0, %lo(_ovl_data_start) + RSPQ_OH_STATEADDR
-    lw s1, %lo(RSPQ_CURRENT_OVL_STATEADDR)
+    #define curr_code_addr s3
+    #define ovl_table_idx  s5
 
     # Restore full command index before switching overlay
     addu cmd_index, t0
 
-    # Load state size (in preparation for saving the state)
-    lhu t0, %lo(_ovl_data_start) + RSPQ_OH_STATESIZE
+    sll curr_code_addr, t1, 2
+    lw curr_code_addr, %lo(RSPQ_OVL_CODE_TABLE)(curr_code_addr)  # (t1 contains RSPQ_CURRENT_OVL)
 
-    # If the current overlay is sibling of the new one, we can skip saving
-    # the state and loading the DMEM, and just jump directly to IMEM loading
-    beq s0, s1, rspq_load_overlay_imem
-     sw s0, %lo(RSPQ_CURRENT_OVL_STATEADDR)
+    # Right now we only know that the overlay index is different,
+    # this could mean we switched to a new single overlay, sibling overlay, or part of a large overlay.
+    # Now check the overlay base index, if that differs we know that at least the code section must be loaded
+    
+    lbu t1, RSPQ_OVERLAY_IDMAP(t1)
+    beq ovl_index_base, t1, 1f
+        sll ovl_table_idx, ovl_index, 2
 
-    # Save current state to RDRAM    
-    jal DMAOutAsync
-     lhu s4, %lo(_ovl_data_start) + RSPQ_OH_STATESTART
+        # the base index differs, and by extension the state address.
+        # backup old state and load new one
+        lw s0, %lo(_ovl_data_start) + RSPQ_OH_STATEADDR
+        lhu t0, %lo(_ovl_data_start) + RSPQ_OH_STATESIZE
+        jal DMAOutAsync
+        lhu s4, %lo(_ovl_data_start) + RSPQ_OH_STATESTART
+        
+        # Load new data segment
+        lw s0, %lo(RSPQ_OVL_DATA_TABLE)(ovl_table_idx)
+        li s4, %lo(_ovl_data_start)
+        srl t0, s0, 24-4
+        jal DMAIn
+        ori t0, 0xf
+    1:
 
-    # Load data segment
-    sll s0, ovl_index, 2
-    lw s0, %lo(RSPQ_OVERLAY_TABLE)(s0)
-    li s4, %lo(_ovl_data_start)
-    srl t0, s0, 24-4
-    jal DMAIn
-     ori t0, 0xf
-
-rspq_load_overlay_imem:
-    # Load text segment
-    lw s0, %lo(_ovl_data_start) + RSPQ_OH_TEXTADDR
-    lhu t0, %lo(_ovl_data_start) + RSPQ_OH_TEXTSIZE
-    jal DMAIn
-     li s4, %lo(_ovl_text_start)
+    # Now check if we need to load new code too. This can only happen for regular and sibling overlays.
+    # large overlays (single code section spanning multiple overlay IDs) do not need this
+    
+    lw s0, %lo(RSPQ_OVL_CODE_TABLE)(ovl_table_idx)
+    beq curr_code_addr, s0, 1f    
+        li s4, %lo(_ovl_text_start)
+        srl t0, s0, 24-4
+        jal DMAIn
+        ori t0, 0xf
+    1:
 
 #if RSPQ_PROFILE
     mfc0 t0, COP0_DP_CLOCK
@@ -637,12 +634,12 @@ rspq_load_overlay_imem:
     # Load new overlay command base
     lhu t0, %lo(_ovl_data_start) + RSPQ_OH_CMDBASE
     j rspq_overlay_loaded
-     sh ovl_index, %lo(RSPQ_CURRENT_OVL)
+     sb ovl_index, %lo(RSPQ_CURRENT_OVL)
 
-
-    #undef ovl_index
+    #undef ovl_index_base
     #undef cmd_index
     #undef cmd_desc
+    #undef curr_code_addr
     .endfunc
 
     .func rspq_switch_highpri

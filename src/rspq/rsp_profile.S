@@ -74,8 +74,8 @@ loop_cmn:
     addiu outptr, 8
 
     # Loop through the overlay table
-    li inptr, %lo(RSPQ_OVERLAY_TABLE)+4
-    li inptr_end, %lo(RSPQ_OVERLAY_TABLE)+4*RSPQ_MAX_OVERLAYS
+    li inptr, %lo(RSPQ_OVL_DATA_TABLE)+4
+    li inptr_end, %lo(RSPQ_OVL_DATA_TABLE)+4*RSPQ_MAX_OVERLAYS
 loop_ovl:
     # Load packed size+address of data segment. Ignore the size
     # We want to load the first two words which are the state offset and size
