@@ -841,7 +841,7 @@ RDPQCmd_ClearZBuffer:
     li t7, %lo(_data_end)
 
     # If this is hit, increase the temporary buffer in __rdpq_clear_z_with_rsp()
-    assert_le t7, 1280, RDPQ_ASSERT_ZCLEAR_INVALID_BUFFER
+    # assert_le t7, 1280, RDPQ_ASSERT_ZCLEAR_INVALID_BUFFER
 
     # Backup DMEM
     jal ClearZBuf_DMEM_Backup

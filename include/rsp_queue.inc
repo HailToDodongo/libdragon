@@ -593,8 +593,7 @@ rspq_load_overlay:
 
     # Right now we only know that the overlay index is different,
     # this could mean we switched to a new single overlay, sibling overlay, or part of a large overlay.
-    # Now check the overlay base index, if that differs we know that at least the code section must be loaded
-    
+    # Now check the overlay base index, if that differs we know that at least the datas section must be loaded
     lbu t1, RSPQ_OVERLAY_IDMAP(t1)
     beq ovl_index_base, t1, 1f
         sll ovl_table_idx, ovl_index, 2

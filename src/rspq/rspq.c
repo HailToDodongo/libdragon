@@ -868,15 +868,6 @@ static uint32_t rspq_overlay_register_internal(rsp_ucode_t *overlay_ucode, uint3
         rspq_data.rspq_ovl_table.idmap[id + i] = base_id;
     }
 
-    debugf("TEXT: %08lX | DATA: %08lX\n", PhysicalAddr(overlay_code), (PhysicalAddr(overlay_data)));
-    for(int i=0; i<16; ++i) {
-        debugf("OVL[%02X]: %02X D:%08lX C:%08lX\n", i, rspq_data.rspq_ovl_table.idmap[i], rspq_data.rspq_ovl_table.data_rdram[i], rspq_data.rspq_ovl_table.code_rdram[i]);    
-    }
-    for(uint32_t i = 0; i < RSPQ_MAX_OVERLAY_COMMAND_COUNT; i++) {
-        debugf(" - cmd[%ld]: %04lX\n", i, (uint32_t)overlay_header->commands[i]);
-        if (overlay_header->commands[i] == 0)break;
-    }
-
     // don't update the header for sibling overlays since their data is shared
     if(main_id == 0) {
         // Fill information in the overlay header

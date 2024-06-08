@@ -215,11 +215,8 @@ typedef struct rsp_queue_s {
     uint8_t rdp_target_bitdepth;         ///< Current RDP target buffer bitdepth
     uint8_t rdp_syncfull_ongoing;        ///< True if a SYNC_FULL is currently ongoing
     uint8_t rdpq_debug;                  ///< Debug mode flag
-    uint8_t padding;                     ///< Padding
+    uint8_t current_ovl;                ///< Current overlay ID
     uint32_t rspq_dram_addr;             ///< Current RDRAM address being processed
-    uint32_t rspq_current_ovl_stateaddr; ///< Current overlay state address
-    uint16_t current_ovl;                ///< Current overlay ID
-    uint16_t padding2;                   ///< Padding
 #if RSPQ_PROFILE
     uint32_t rspq_profile_cur_slot;
     uint32_t rspq_profile_start_time;
