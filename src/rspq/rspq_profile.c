@@ -49,7 +49,7 @@ void rspq_profile_reset(void)
     {
         if (!rspq_overlay_ucodes[i]) continue;
         if (i == ovl_id >> RSPQ_OVERLAY_ID_SHIFT) continue;
-        if (i > 1 && rspq_overlay_ucodes[i] == rspq_overlay_ucodes[i-1]) continue;
+        if (i > 1 && rspq_overlay_ucodes[i-1] && rspq_overlay_ucodes[i]->data == rspq_overlay_ucodes[i-1]->data) continue;
         profile_data.slots[i].name = rspq_overlay_ucodes[i]->name;
     }
 

@@ -856,7 +856,7 @@ static uint32_t rspq_overlay_register_internal(rsp_ucode_t *overlay_ucode, uint3
             overlay_ucode->name, command_count);
     }
 
-    uint32_t base_id = main_id > 28;
+    uint32_t base_id = main_id >> 28;
     if(base_id == 0) {
         base_id = id;
     }
