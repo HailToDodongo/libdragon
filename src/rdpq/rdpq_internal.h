@@ -111,9 +111,10 @@ typedef struct rdpq_block_state_s {
 } rdpq_block_state_t;
 
 void __rdpq_block_begin();
+void __rdpq_block_recycle(rdpq_block_t *head);
 rdpq_block_t* __rdpq_block_end();
 void __rdpq_block_free(rdpq_block_t *block);
-void __rdpq_block_run(rdpq_block_t *block);
+void __rdpq_block_run(rdpq_tracking_t *block);
 void __rdpq_block_next_buffer(void);
 void __rdpq_block_update(volatile uint32_t *wptr);
 void __rdpq_block_reserve(int num_rdp_commands);
