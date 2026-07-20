@@ -2,7 +2,6 @@
  * @file n64sys.h
  * @author Jennifer Taylor <dragonminded@dragonminded.com>
  * @author Giovanni Bajo <giovannibajo@gmail.com>
- * @author thekovic <https://github.com/thekovic>
  * @brief N64 System Interface
  * @ingroup n64sys
  */
@@ -485,6 +484,16 @@ void inst_cache_hit_writeback(volatile const void *, unsigned long);
 void inst_cache_hit_invalidate(volatile void *, unsigned long);
 
 /**
+ * @brief Force an instruction cache fill over a memory region
+ *
+ * @param[in] addr
+ *            Pointer to memory in question
+ * @param[in] length
+ *            Length in bytes of the data pointed at by addr
+ */
+ void inst_cache_hit_fill(volatile void *, unsigned long);
+ 
+ /**
  * @brief Force an instruction cache index invalidate over a memory region
  *
  * @param[in] addr
@@ -545,12 +554,21 @@ void assert_memory_expanded(void);
  * @brief Heap statistics
  */
 typedef struct {
-    int total;      ///< Total heap size in bytes
-    int used;       ///< Used heap size in bytes
+    int total;          ///< Total heap size in bytes
+    int used;           ///< Used heap size in bytes
+    int free;           ///< Free heap size in bytes
+    int fragmented;     ///< Free bytes in malloc chunks that are not in the top chunk
+    float fragmentation;///< Fragmentation factor, in range [0, 1]
 } heap_stats_t;
 
 /**
  * @brief Return information about memory usage of the heap
+ *
+ * The fragmentation factor is computed from newlib's malloc arena as
+ * `fragmented / malloc_free`, where `fragmented` is the amount of free memory
+ * that is not part of the top chunk (`mallinfo().fordblks - mallinfo().keepcost`).
+ * This estimates how much malloc-managed free memory is trapped in internal
+ * holes rather than available as one expandable tail.
  */
 void sys_get_heap_stats(heap_stats_t *stats);
 

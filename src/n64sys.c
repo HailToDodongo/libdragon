@@ -20,6 +20,7 @@
 #include "utils.h"
 #include "rompak_internal.h"
 #include "accounting_internal.h"
+#include "interrupt_internal.h"
 
 int __boot_memsize;        ///< Memory size as detected by IPL3
 int __boot_tvtype;         ///< TV type as detected by IPL3
@@ -29,9 +30,6 @@ int __boot_address_page;   ///< Address in the ROM of the ELF
 
 /** @brief Records whether the user called a function to check for the presence of expanded memory */
 bool __expanded_memory_asserted = false;
-
-/** @brief Last tick at which the 64-bit counter was updated */
-static uint32_t ticks64_base_tick;
 
 /** @brief Last value of the 64-bit counter */
 static uint64_t ticks64_base;
@@ -56,6 +54,7 @@ static bool hw_memset_broken = false;
 #define INDEX_CREATE_DIRTY              (3)
 #define HIT_INVALIDATE                  (4)
 #define HIT_WRITEBACK_INVALIDATE        (5)
+#define HIT_FILL                        (5)
 #define HIT_WRITEBACK                   (6)
 
 /// @endcond
@@ -123,6 +122,11 @@ void inst_cache_hit_writeback(volatile const void * addr, unsigned long length)
 void inst_cache_hit_invalidate(volatile void * addr, unsigned long length)
 {
     cache_op(build_opcode(HIT_INVALIDATE, CACHE_INST_FLAG), CACHE_INST_LINESIZE);
+}
+
+void inst_cache_hit_fill(volatile void * addr, unsigned long length)
+{
+    cache_op(build_opcode(HIT_FILL, CACHE_INST_FLAG), CACHE_INST_LINESIZE);
 }
 
 void inst_cache_index_invalidate(volatile void * addr, unsigned long length)
@@ -228,11 +232,13 @@ pi_addr_t sys_elf_address(void)
 
 uint64_t get_ticks(void)
 {
-	uint32_t now = TICKS_READ();
-	uint32_t prev = ticks64_base_tick;
-	ticks64_base_tick = now;
-	ticks64_base += now - prev;
-	return ticks64_base;
+    uint32_t sr = __disable_interrupts();
+    uint32_t now = TICKS_READ();
+    uint32_t prev = (uint32_t)ticks64_base;
+    ticks64_base += (uint32_t)(now - prev);
+    uint64_t ret = ticks64_base;
+    __enable_interrupts(sr);
+    return ret;
 }
 
 uint64_t get_ticks_us(void)
@@ -293,6 +299,9 @@ void sys_get_heap_stats(heap_stats_t *stats)
 
     stats->total = __heap_total_size;
     stats->used = m.uordblks + __heap_top_allocated_size;
+    stats->free = stats->total - stats->used;
+    stats->fragmented = m.fordblks > m.keepcost ? m.fordblks - m.keepcost : 0;
+    stats->fragmentation = m.fordblks ? (float)stats->fragmented / (float)m.fordblks : 0.0f;
 }
 
 static void version_callback(void *ctx, char *key, char *value)

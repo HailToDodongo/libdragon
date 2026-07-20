@@ -60,6 +60,7 @@
 #include "kqueue.h"
 #include "ksemaphore.h"
 #include "n64sys.h"
+#include "scratch.h"
 #include "vaddr64.h"
 #include "dd.h"
 #include "backtrace.h"
@@ -96,6 +97,8 @@
 #include "rdpq_xform.h"
 #include "surface.h"
 #include "sprite.h"
+#include "lspr3.h"
+#include "lspr1.h"
 #include "debugcpp.h"
 #include "dlfcn.h"
 #include "model64.h"
@@ -106,5 +109,9 @@
 #include "a3d.h"
 #include "profile.h"
 #include "coroutine.h"
+#include "magma.h"
+#include "magma_math.h"
+#include "mgfx.h"
+#include "sram.h"
 
 #endif

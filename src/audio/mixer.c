@@ -67,6 +67,7 @@ DEFINE_RSP_UCODE(rsp_mixer);
 #define CH_FLAGS_STEREO     	(1<<3)   ///< Set if the channel is stereo (left)
 #define CH_FLAGS_STEREO_SUB 	(1<<4)   ///< The channel is the second half of a stereo (right)
 #define CH_FLAGS_STEREO_ALLOC	(1<<5)   ///< The channel has a buffer sized for stereo
+#define CH_FLAGS_FORCE_MONO  	(1<<6)   ///< Fold this channel's output to both buses (mono downmix). CPU-side only; RSP ucode ignores this bit.
 
 /// @brief Fixed point value used in waveform position calculations.
 /// This is a signed 64-bit integer with the fractional part using
@@ -265,6 +266,23 @@ void mixer_ch_set_vol(int ch, float lvol, float rvol) {
 
 void mixer_ch_set_vol_pan(int ch, float vol, float pan) {
 	mixer_ch_set_vol(ch, vol * (1.f - pan), vol * pan);
+}
+
+void mixer_ch_set_force_mono(int ch, bool enable) {
+	assert(ch < Mixer.num_channels);
+	if (enable) Mixer.channels[ch].flags |=  CH_FLAGS_FORCE_MONO;
+	else        Mixer.channels[ch].flags &= ~CH_FLAGS_FORCE_MONO;
+}
+
+bool mixer_ch_get_force_mono(int ch) {
+	assert(ch < Mixer.num_channels);
+	return (Mixer.channels[ch].flags & CH_FLAGS_FORCE_MONO) != 0;
+}
+
+void mixer_set_force_mono(bool enable) {
+	for (int i = 0; i < Mixer.num_channels; i++) {
+		mixer_ch_set_force_mono(i, enable);
+	}
 }
 
 void mixer_ch_set_vol_dolby(int ch, float fl, float fr,
@@ -527,11 +545,22 @@ void mixer_ch_set_limits(int ch, int max_bits, float max_frequency, int max_buf_
 	assert(!mixer_ch_playing(ch));
 	tracef("mixer_ch_set_limits: ch=%d bits=%d maxfreq:%.2f bufsz:%d\n", ch, max_bits, max_frequency, max_buf_sz);
 
-	Mixer.limits[ch] = (channel_limit_t){
+	channel_limit_t newlimits = {
 		.max_bits = max_bits ? max_bits : 16,
 		.max_frequency = max_frequency ? max_frequency : Mixer.sample_rate,
 		.max_buf_sz = max_buf_sz,
 	};
+
+	// No-op if the limits are unchanged: the sample buffer is sized from them,
+	// so it's still valid and we keep it. Freeing it here (to reallocate lazily)
+	// would churn the uncached buffer on every playback for callers that
+	// re-assert the same limit, fragmenting the heap.
+	if (newlimits.max_bits == Mixer.limits[ch].max_bits &&
+	    newlimits.max_frequency == Mixer.limits[ch].max_frequency &&
+	    newlimits.max_buf_sz == Mixer.limits[ch].max_buf_sz)
+		return;
+
+	Mixer.limits[ch] = newlimits;
 
 	// Free the memory immediately, as it doesn't match the new limits anymore.
 	// We will reallocate it later lazily if needed.
@@ -651,11 +680,19 @@ static void mixer_exec(int32_t *out, int num_samples) {
 		mixer_channel_t *c = &Mixer.channels[ch];
 
 		// Stereo sub-channel. Will be ignored by RSP but we need to configure
-		// volume correctly.
+		// volume correctly. The force-mono flag lives on the OWNER channel
+		// (ch-1), since it's a property of the voice — check there.
 		if (c->flags & CH_FLAGS_STEREO_SUB) {
 			rsp_wv[ch].ptr = 0;
-			settings->lvol[ch] = 0;
-			settings->rvol[ch] = Mixer.rvol[ch-1];
+			if (Mixer.channels[ch-1].flags & CH_FLAGS_FORCE_MONO) {
+				// R sample stream → half-amplitude to both buses.
+				mixer_fx15_t v = Mixer.rvol[ch-1] >> 1;
+				settings->lvol[ch] = v;
+				settings->rvol[ch] = v;
+			} else {
+				settings->lvol[ch] = 0;
+				settings->rvol[ch] = Mixer.rvol[ch-1];
+			}
 			continue;
 		}
 
@@ -696,11 +733,29 @@ static void mixer_exec(int32_t *out, int num_samples) {
 		}
 
 		if (c->flags & CH_FLAGS_STEREO) {
-			settings->lvol[ch] = Mixer.lvol[ch];
-			settings->rvol[ch] = 0;
+			if (c->flags & CH_FLAGS_FORCE_MONO) {
+				// L sample stream → half-amplitude to both buses.
+				// Combined with the SUB branch above, this folds a stereo
+				// voice to mono: L_out = R_out = 0.5*(L*lvol + R*rvol).
+				mixer_fx15_t v = Mixer.lvol[ch] >> 1;
+				settings->lvol[ch] = v;
+				settings->rvol[ch] = v;
+			} else {
+				settings->lvol[ch] = Mixer.lvol[ch];
+				settings->rvol[ch] = 0;
+			}
 		} else {
-			settings->lvol[ch] = Mixer.lvol[ch];
-			settings->rvol[ch] = Mixer.rvol[ch];
+			if (c->flags & CH_FLAGS_FORCE_MONO) {
+				// Mono source: average the pan and write to both buses.
+				// A hard-panned source loses its panning and -6 dB; a
+				// centered source (lvol==rvol) is unaffected.
+				mixer_fx15_t v = (Mixer.lvol[ch] + Mixer.rvol[ch]) >> 1;
+				settings->lvol[ch] = v;
+				settings->rvol[ch] = v;
+			} else {
+				settings->lvol[ch] = Mixer.lvol[ch];
+				settings->rvol[ch] = Mixer.rvol[ch];
+			}
 		}
 	}
 
@@ -817,10 +872,17 @@ void mixer_poll(int16_t *out16, int num_samples) {
 
 void mixer_try_play()
 {
-    while (audio_can_write())
-    {
-        short *buf = audio_write_begin();
-        mixer_poll(buf, audio_get_buffer_length());
-        audio_write_end();
-    }
+	// To smooth out the pacing for mixer and wav64 decodes, we fill buffers
+	// to at least audio_get_num_buffers()-1, but fill completely, if there is
+	// only one free one left.
+	int free_buffers = audio_get_num_buffers() - audio_get_queued_buffers();
+	if (free_buffers <= 0)
+		return;
+
+	int buffers_to_fill = MAX(free_buffers - 1, 1);
+	while (buffers_to_fill-- > 0) {
+		short *buf = audio_write_begin();
+		mixer_poll(buf, audio_get_buffer_length());
+		audio_write_end();
+	}
 }

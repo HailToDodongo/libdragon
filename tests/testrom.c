@@ -205,6 +205,7 @@ int assert_equal_mem(TestContext *ctx, const char *file, int line, const uint8_t
 #include "test_eepromfs.c"
 #include "test_cache.c"
 #include "test_sys.c"
+#include "test_scratch.c"
 #include "test_ticks.c"
 #include "test_timer.c"
 #include "test_irq.c"
@@ -227,6 +228,7 @@ int assert_equal_mem(TestContext *ctx, const char *file, int line, const uint8_t
 #include "test_dl.c"
 #include "test_math.c"
 #include "test_fm.c"
+#include "test_magma.c"
 
 /**********************************************************************
  * MAIN
@@ -263,6 +265,12 @@ static const struct Testsuite
 	TEST_FUNC(test_irq_reentrancy,           230, TEST_FLAGS_RESET_COUNT),
 	TEST_FUNC(test_sys_hwmemset,			   0, TEST_FLAGS_NO_BENCHMARK | TEST_FLAGS_NO_EMULATOR),
 	TEST_FUNC(test_sys_hwmemset_uncached,      0, TEST_FLAGS_NO_BENCHMARK | TEST_FLAGS_NO_EMULATOR),
+	TEST_FUNC(test_scratch_basics,             0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_scratch_calloc,             0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_scratch_stats_and_peak,     0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_scratch_collapse_ordering,  0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_scratch_realloc,            0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_scratch_exhaustion_recovery, 0, TEST_FLAGS_NO_BENCHMARK),
 	TEST_FUNC(test_kernel_basic,               5, TEST_FLAGS_NO_BENCHMARK),
 	TEST_FUNC(test_kernel_mutex_1,             5, TEST_FLAGS_NO_BENCHMARK),
 	TEST_FUNC(test_kernel_priority,            5, TEST_FLAGS_NO_BENCHMARK),
@@ -404,6 +412,8 @@ static const struct Testsuite
 	TEST_FUNC(test_rdpq_sprite_upload,         0, TEST_FLAGS_NO_BENCHMARK),
 	TEST_FUNC(test_rdpq_sprite_lod,            0, TEST_FLAGS_NO_BENCHMARK),
 	TEST_FUNC(test_rdpq_mat_basic,             0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_rdpq_mat_empty,             0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_rdpq_mat_blender,           0, TEST_FLAGS_NO_BENCHMARK),
 	TEST_FUNC(test_rdpq_mat_ext,               0, TEST_FLAGS_NO_BENCHMARK),
 	TEST_FUNC(test_mpeg1_idct,                 0, TEST_FLAGS_NO_BENCHMARK),
 	TEST_FUNC(test_mpeg1_block_decode,         0, TEST_FLAGS_NO_BENCHMARK),
@@ -426,6 +436,9 @@ static const struct Testsuite
 	TEST_FUNC(test_mat4_mul_scale_translation,			0, TEST_FLAGS_NO_BENCHMARK),
 	TEST_FUNC(test_mat3_mul_two_identities,				0, TEST_FLAGS_NO_BENCHMARK),
 	TEST_FUNC(test_mat3_mul_scale_translation,			0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_quat_from_euler_zero_identity,		0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_quat_slerp_same_quaternion,			0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_quat_slerp_near_identical_is_finite,	0, TEST_FLAGS_NO_BENCHMARK),
 	TEST_FUNC(test_fm_truncf,                  0, TEST_FLAGS_NO_BENCHMARK),
 	TEST_FUNC(test_fm_ceilf,                   0, TEST_FLAGS_NO_BENCHMARK),
 	TEST_FUNC(test_fm_floorf,                  0, TEST_FLAGS_NO_BENCHMARK),
@@ -439,6 +452,27 @@ static const struct Testsuite
 	TEST_FUNC(test_fm_expf,                    0, TEST_FLAGS_NO_BENCHMARK),
 	TEST_FUNC(test_fm_lerp_angle,              0, TEST_FLAGS_NO_BENCHMARK),
 	TEST_FUNC(test_fm_wrap_angle,              0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_triangle_list, 				0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_triangle_list_full_cache, 	0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_triangle_strip, 				0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_triangle_strip_full_cache,	0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_triangle_fan, 				0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_triangle_fan_full_cache, 	0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_indexed_one_tri, 			0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_indexed_two_tris, 			0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_indexed_full_cache, 			0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_indexed_full_one_extra, 		0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_indexed_fragmented_batch, 	0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_indexed_frag_backwards, 		0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_indexed_holes, 				0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_indexed_out_of_order, 		0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_indexed_coalescing, 			0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_indexed_strip, 				0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_indexed_strip_full, 			0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_indexed_fan, 				0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_indexed_fan_full, 			0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_indexed_restart_strip, 		0, TEST_FLAGS_NO_BENCHMARK),
+	TEST_FUNC(test_mg_draw_indexed_restart_fan, 		0, TEST_FLAGS_NO_BENCHMARK),
 };
 
 int main() {

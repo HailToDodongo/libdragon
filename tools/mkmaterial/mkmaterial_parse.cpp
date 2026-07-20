@@ -17,6 +17,7 @@
 #include <float.h>
 #include "../common/json.hpp"
 #include "../common/utils.h"
+#include "../include/rdpq_macros.h"
 
 #define INI_HANDLER_LINENO 1
 #define INI_INLINE_COMMENT_PREFIXES ";#"
@@ -74,6 +75,36 @@ int parse_int(std::string value, int min, int max)
     }
 }
 
+std::vector<std::string> split_string(std::string str, char delimiter) {
+    std::vector<std::string> tokens;
+    size_t start = 0;
+    size_t end = str.find(delimiter);
+    
+    while (end != std::string::npos) {
+        tokens.push_back(str.substr(start, end - start));
+        start = end + 1;
+        end = str.find(delimiter, start);
+    }
+    tokens.push_back(str.substr(start));
+    return tokens;
+}
+
+Vec4 parse_color(std::string value)
+{
+    std::vector<std::string> tokens = split_string(value, ',');
+    if (tokens.size() != 3 && tokens.size() != 4) {
+        throw std::runtime_error("invalid color value: " + value);
+    }
+    Vec4 color{};
+    for (size_t i = 0; i < tokens.size(); i++) {
+        color[i] = parse_float(tokens[i], 0, 1);
+    }
+    if (tokens.size() < 4) {
+        color[3] = 1;
+    }
+    return color;
+}
+
 std::string parse_enum(std::string value, const std::vector<std::string> &enums)
 {
     for (size_t i = 0; i < enums.size(); i++) {
@@ -88,6 +119,29 @@ std::string parse_enum(std::string value, const std::vector<std::string> &enums)
     throw std::runtime_error(error);
 }
 
+void CombinerRegister::parse_float(std::string value)
+{
+    float v = ::parse_float(value, 0, 1);
+    this->value = {v, v, v, v};
+    is_set = true;
+}
+
+void CombinerRegister::parse_color(std::string value)
+{
+    this->value = ::parse_color(value);
+    is_set = true;
+}
+
+Combiner::Combiner()
+{
+    sync_expr_full();
+}
+
+void Combiner::sync_expr_full()
+{
+    full = combexpr::CombinerExprFull(rgb, alpha);
+}
+
 void Combiner::parse_attr(std::string key, std::string value)
 {
     static const std::regex expr(R"(\s*\(\s*([\w.]+)\s*,\s*([\w.]+)\s*,\s*([\w.]+)\s*,\s*([\w.]+)\s*\)(?:\s*,\s*\(\s*([\w.]+)\s*,\s*([\w.]+)\s*,\s*([\w.]+)\s*,\s*([\w.]+)\s*\))?)");
@@ -98,14 +152,14 @@ void Combiner::parse_attr(std::string key, std::string value)
         combexpr::Matcher matcher(root);
     
         rgb = matcher.matchCombiner(combexpr::RGB);
-        full = combexpr::CombinerExprFull(rgb, alpha);
+        sync_expr_full();
     } else if (key == "alpha") {
         combexpr::Parser parser(value);
         auto root = parser.parseExpression();
         combexpr::Matcher matcher(root);
     
         alpha = matcher.matchCombiner(combexpr::ALPHA);
-        full = combexpr::CombinerExprFull(rgb, alpha);
+        sync_expr_full();
     } else if (key == "rgb.raw") {
         // Match regex for raw combiner expression: (a,b,c,d), optionally repeated for the second step
         std::smatch match;
@@ -114,7 +168,7 @@ void Combiner::parse_attr(std::string key, std::string value)
             if (match[5].matched) {
                 rgb.set(1, 'a', match[5]); rgb.set(1, 'b', match[6]); rgb.set(1, 'c', match[7]); rgb.set(1, 'd', match[8]);
             }
-            full = combexpr::CombinerExprFull(rgb, alpha);
+            sync_expr_full();
         } else {
             throw std::runtime_error("invalid rgb.raw combiner expression: must be in format \"(a,b,c,d)\"");
         }
@@ -126,10 +180,20 @@ void Combiner::parse_attr(std::string key, std::string value)
             if (match[5].matched) {
                 alpha.set(1, 'a', match[5]); alpha.set(1, 'b', match[6]); alpha.set(1, 'c', match[7]); alpha.set(1, 'd', match[8]);
             }
-            full = combexpr::CombinerExprFull(rgb, alpha);
+            sync_expr_full();
         } else {
             throw std::runtime_error("invalid alpha.raw combiner expression: must be in format \"(a,b,c,d)\"");
         }
+    } else if (key == "reg.k4") {
+        registers[combexpr::internal::UNIFORM_K4].parse_float(value);
+    } else if (key == "reg.k5") {
+        registers[combexpr::internal::UNIFORM_K5].parse_float(value);
+    } else if (key == "reg.prim_lod_frac") {
+        registers[combexpr::internal::UNIFORM_PRIM_LOD_FRAC].parse_float(value);
+    } else if (key == "reg.env") {
+        registers[combexpr::internal::UNIFORM_ENV].parse_color(value);
+    } else if (key == "reg.prim") {
+        registers[combexpr::internal::UNIFORM_PRIM].parse_color(value);
     } else {
         throw std::runtime_error("Unknown combiner key: " + key);
     }
@@ -153,10 +217,24 @@ void Blender::parse_attr(std::string key, std::string value)
 
 void Blender::validate(void)
 {
+    if (mode < 0)
+        return;
     if (mode.to_str() == "multiply_const" && constant < 0)
         throw std::runtime_error("blender.const must be specified for mode multiply_const");
     if (mode.to_str() != "multiply_const" && constant >= 0)
         throw std::runtime_error("blender.const is only valid for mode multiply_const");
+}
+
+uint32_t Blender::to_rdpq_mode_arg(void)
+{
+    static const uint32_t builtin_modes[] = {
+        0,
+        RDPQ_BLENDER((IN_RGB, IN_ALPHA, MEMORY_RGB, INV_MUX_ALPHA)),
+        RDPQ_BLENDER((IN_RGB, FOG_ALPHA, MEMORY_RGB, INV_MUX_ALPHA)),
+        RDPQ_BLENDER((IN_RGB, IN_ALPHA, MEMORY_RGB, ONE)),
+    };
+
+    return builtin_modes[mode];
 }
 
 void Texture::validate_name(void)
