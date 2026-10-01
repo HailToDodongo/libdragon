@@ -13,6 +13,7 @@
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="libdragon.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -70,11 +71,12 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="dir_5ff5e5924d5ef6e3d511b751935e6c7e.html">joybus</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#define-members">Macros</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">eeprom.c File Reference<div class="ingroups"><a class="el" href="group__libdragon.html">libdragon</a> &raquo; <a class="el" href="group__peripherals.html">Peripherals subsystem</a> &raquo; <a class="el" href="group__eeprom.html">EEPROM subsystem</a></div></div></div>
 </div><!--header-->
@@ -83,6 +85,13 @@ $(function() {
 <p>EEPROM support.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:a69c0fba73c43146e5858f1df6e80ac81" id="r_a69c0fba73c43146e5858f1df6e80ac81"><td class="memItemLeft" align="right" valign="top"><a id="a69c0fba73c43146e5858f1df6e80ac81" name="a69c0fba73c43146e5858f1df6e80ac81"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>EEPROM_PORT</b>&#160;&#160;&#160;4</td></tr>
+<tr class="memdesc:a69c0fba73c43146e5858f1df6e80ac81"><td class="mdescLeft">&#160;</td><td class="mdescRight">Joybus port for the cartridge connector. <br /></td></tr>
+<tr class="separator:a69c0fba73c43146e5858f1df6e80ac81"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:ad8d22be9ed8151aaf00f3aaa52909a87" id="r_ad8d22be9ed8151aaf00f3aaa52909a87"><td class="memItemLeft" align="right" valign="top"><a class="el" href="eeprom_8h.html#a5d2c70b26685af9f2498cd45f88f224f">eeprom_type_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="eeprom_8c.html#ad8d22be9ed8151aaf00f3aaa52909a87">eeprom_present</a> (void)</td></tr>
@@ -106,6 +115,7 @@ Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>EEPROM support. </p>
+<dl class="section author"><dt>Author</dt><dd>Giovanni Bajo <a href="#" onclick="location.href='mai'+'lto:'+'gio'+'va'+'nni'+'ba'+'jo@'+'gm'+'ail'+'.c'+'om'; return false;">giova<span class="obfuscator">.nosp@m.</span>nnib<span class="obfuscator">.nosp@m.</span>ajo@g<span class="obfuscator">.nosp@m.</span>mail<span class="obfuscator">.nosp@m.</span>.com</a> </dd></dl>
 </div><h2 class="groupheader">Function Documentation</h2>
 <a id="ad8d22be9ed8151aaf00f3aaa52909a87" name="ad8d22be9ed8151aaf00f3aaa52909a87"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad8d22be9ed8151aaf00f3aaa52909a87">&#9670;&#160;</a></span>eeprom_present()</h2>
@@ -177,6 +187,8 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Read a block from EEPROM. </p>
+<p>This operation will wait for the EEPROM busy bit to clear before reading; you may want to pause audio before calling this to prevent stuttering.</p>
+<p>This operation is quite fast (compared to writes) as it takes approximately 750 µs.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">block</td><td>Block to read data from. Joybus accesses EEPROM in 8-byte blocks.</td></tr>
@@ -214,6 +226,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Write a block to EEPROM. </p>
+<p>Once a block is written, the EEPROM will be busy for up to 6 milliseconds. This operation will wait for the EEPROM busy bit to clear before writing; you may want to pause audio before calling this to prevent stuttering.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">block</td><td>Block to write data to. Joybus accesses EEPROM in 8-byte blocks.</td></tr>
@@ -304,10 +317,10 @@ Functions</h2></td></tr>
 
 <p>Write a buffer of bytes to EEPROM. </p>
 <p>This is a high-level convenience helper that abstracts away the one-at-a-time EEPROM block access pattern.</p>
-<p>Each EEPROM block write takes approximately 15 milliseconds; this operation may block for a while with large buffer sizes:</p>
+<p>Each EEPROM block write takes approximately 6 milliseconds; this operation may block for a while with large buffer sizes:</p>
 <ul>
-<li>4k EEPROM: 64 blocks * 15ms = 960ms!</li>
-<li>16k EEPROM: 256 blocks * 15ms = 3840ms!</li>
+<li>4k EEPROM: 64 blocks * 6ms = 384ms!</li>
+<li>16k EEPROM: 256 blocks * 6ms = 1536ms!</li>
 </ul>
 <p>You may want to pause audio before calling this.</p>
 <dl class="params"><dt>Parameters</dt><dd>
@@ -324,7 +337,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Apr 6 2025 07:25:47 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Oct 1 2026 20:35:24 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

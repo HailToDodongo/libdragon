@@ -1,8 +1,8 @@
 # Libdragon
 
 <p align="center">
-<img src="https://user-images.githubusercontent.com/127010686/256988697-8fe1bdcf-a21b-42d0-b383-502eaf048b50.png#gh-dark-mode-only" width="400">
-<img src="https://user-images.githubusercontent.com/127010686/256988620-1167a1e7-6773-4a67-97d4-d251c12ef8ba.png#gh-light-mode-only" width="400">
+<img src="https://github.com/user-attachments/assets/74c67b9b-ddb7-4527-bc61-86d244205c65#gh-dark-mode-only" id="gh-dark-mode-only" width="400">
+<img src="https://github.com/user-attachments/assets/02586355-e89e-4aac-a208-5ae465287bd7#gh-light-mode-only" id="gh-light-mode-only" width="400">
 </p>
 
 [![Build](https://github.com/DragonMinded/libdragon/actions/workflows/build-toolchain-library-and-roms.yml/badge.svg?branch=trunk)](https://github.com/DragonMinded/libdragon/actions/workflows/build-toolchain-library-and-roms.yml)
@@ -16,7 +16,7 @@ Libdragon is an open-source SDK for Nintendo 64. It aims for a complete N64
 programming experience while providing programmers with modern approach to
 programming and debugging. These are the main features:
 
-* Based on modern GCC (version 14) and Newlib, for a full C11 programming experience.
+* Based on modern GCC (version 16) and Newlib, for a full C11 programming experience.
   A Docker container is available to quickly set up the programming environment.
 * The GCC toolchain is 64 bit capable to be able to use the full R4300 capabilities
   (commercial games and libultra are based on a 32-bit ABI and is not possible

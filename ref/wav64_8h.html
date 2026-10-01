@@ -13,6 +13,7 @@
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="libdragon.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -120,6 +121,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>wav64_set_loop</b> (<
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Support for WAV64 audio files. </p>
+<dl class="section author"><dt>Author</dt><dd>Giovanni Bajo <a href="#" onclick="location.href='mai'+'lto:'+'gio'+'va'+'nni'+'ba'+'jo@'+'gm'+'ail'+'.c'+'om'; return false;">giova<span class="obfuscator">.nosp@m.</span>nnib<span class="obfuscator">.nosp@m.</span>ajo@g<span class="obfuscator">.nosp@m.</span>mail<span class="obfuscator">.nosp@m.</span>.com</a> </dd></dl>
 </div><hr/><h2 class="groupheader">Data Structure Documentation</h2>
 <a name="structwav64__t" id="structwav64__t"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#structwav64__t">&#9670;&#160;</a></span>wav64_t</h2>
@@ -196,8 +198,8 @@ Pointer to extended data (internal use) </td></tr>
 <div class="fragment"><div class="line"><a class="code hl_define" href="wav64_8h.html#a41067fd01f39b23852945f418e0f3d90">wav64_init_compression</a>(3); </div>
 <div class="line"> </div>
 <div class="line"><a class="code hl_function" href="wav64_8c.html#a62b743c8c56bd67b3f2231f770c99e78">wav64_open</a>(&amp;jingle, <span class="stringliteral">&quot;rom:/jingle.wav64&quot;</span>);</div>
-<div class="ttc" id="awav64_8c_html_a62b743c8c56bd67b3f2231f770c99e78"><div class="ttname"><a href="wav64_8c.html#a62b743c8c56bd67b3f2231f770c99e78">wav64_open</a></div><div class="ttdeci">void wav64_open(wav64_t *wav, const char *file_name)</div><div class="ttdoc">Open a WAV64 file for playback.</div><div class="ttdef"><b>Definition</b> wav64.c:102</div></div>
-<div class="ttc" id="awav64_8h_html_a41067fd01f39b23852945f418e0f3d90"><div class="ttname"><a href="wav64_8h.html#a41067fd01f39b23852945f418e0f3d90">wav64_init_compression</a></div><div class="ttdeci">#define wav64_init_compression(level)</div><div class="ttdoc">Enable a non-default compression level.</div><div class="ttdef"><b>Definition</b> wav64.h:69</div></div>
+<div class="ttc" id="awav64_8c_html_a62b743c8c56bd67b3f2231f770c99e78"><div class="ttname"><a href="wav64_8c.html#a62b743c8c56bd67b3f2231f770c99e78">wav64_open</a></div><div class="ttdeci">void wav64_open(wav64_t *wav, const char *file_name)</div><div class="ttdoc">Open a WAV64 file for playback.</div><div class="ttdef"><b>Definition</b> wav64.c:103</div></div>
+<div class="ttc" id="awav64_8h_html_a41067fd01f39b23852945f418e0f3d90"><div class="ttname"><a href="wav64_8h.html#a41067fd01f39b23852945f418e0f3d90">wav64_init_compression</a></div><div class="ttdeci">#define wav64_init_compression(level)</div><div class="ttdoc">Enable a non-default compression level.</div><div class="ttdef"><b>Definition</b> wav64.h:70</div></div>
 </div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">level</td><td>Compression level to initialize</td></tr>
@@ -274,7 +276,7 @@ Pointer to extended data (internal use) </td></tr>
 </div><div class="memdoc">
 
 <p>Start playing a WAV64 file. </p>
-<p>This is just a simple wrapper that calls <a class="el" href="mixer_8c.html#a1aa94701f22d086d624fb7d938ba0062" title="Start playing the specified waveform on the specified channel.">mixer_ch_play</a> on the WAV64's waveform (wav64_t::wave). For advanced usages, please call directly the mixer functions.</p>
+<p>This is just a simple wrapper that calls <a class="el" href="mixer_8c.html#a1aa94701f22d086d624fb7d938ba0062" title="Start playing the specified waveform on the specified channel.">mixer_ch_play</a> on the WAV64's waveform (<a class="el" href="wav64_8h.html#a4201df70d0e73f29e11d22666cc0b0bd" title="waveform_t for this WAV64.">wav64_t::wave</a>). For advanced usages, please call directly the mixer functions.</p>
 <p>It is possible to start the same waveform on multiple independent channels. Playback will automatically stop when the waveform is finished, unless it is looping. To stop playing a wav64 file before it is normally finished, call <a class="el" href="mixer_8c.html#ae21b093a1283e06ede42363498c490cb" title="Stop playing samples on the specified channel.">mixer_ch_stop</a> on the channel used for playback.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -343,7 +345,7 @@ Pointer to extended data (internal use) </td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Apr 6 2025 07:25:47 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Oct 1 2026 20:35:24 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

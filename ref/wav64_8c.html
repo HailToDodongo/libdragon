@@ -13,6 +13,7 @@
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="libdragon.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -130,6 +131,7 @@ int64_t&#160;</td><td class="memItemRight" valign="bottom"><b>__wav64_profile_dm
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Support for WAV64 audio files. </p>
+<dl class="section author"><dt>Author</dt><dd>Giovanni Bajo <a href="#" onclick="location.href='mai'+'lto:'+'gio'+'va'+'nni'+'ba'+'jo@'+'gm'+'ail'+'.c'+'om'; return false;">giova<span class="obfuscator">.nosp@m.</span>nnib<span class="obfuscator">.nosp@m.</span>ajo@g<span class="obfuscator">.nosp@m.</span>mail<span class="obfuscator">.nosp@m.</span>.com</a> </dd></dl>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="a2ebc55429ed20a91fac441986024ba61" name="a2ebc55429ed20a91fac441986024ba61"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2ebc55429ed20a91fac441986024ba61">&#9670;&#160;</a></span>WAV_RIFF_ID</h2>
@@ -325,7 +327,7 @@ int64_t&#160;</td><td class="memItemRight" valign="bottom"><b>__wav64_profile_dm
 </div><div class="memdoc">
 
 <p>Start playing a WAV64 file. </p>
-<p>This is just a simple wrapper that calls <a class="el" href="mixer_8c.html#a1aa94701f22d086d624fb7d938ba0062" title="Start playing the specified waveform on the specified channel.">mixer_ch_play</a> on the WAV64's waveform (wav64_t::wave). For advanced usages, please call directly the mixer functions.</p>
+<p>This is just a simple wrapper that calls <a class="el" href="mixer_8c.html#a1aa94701f22d086d624fb7d938ba0062" title="Start playing the specified waveform on the specified channel.">mixer_ch_play</a> on the WAV64's waveform (<a class="el" href="wav64_8h.html#a4201df70d0e73f29e11d22666cc0b0bd" title="waveform_t for this WAV64.">wav64_t::wave</a>). For advanced usages, please call directly the mixer functions.</p>
 <p>It is possible to start the same waveform on multiple independent channels. Playback will automatically stop when the waveform is finished, unless it is looping. To stop playing a wav64 file before it is normally finished, call <a class="el" href="mixer_8c.html#ae21b093a1283e06ede42363498c490cb" title="Stop playing samples on the specified channel.">mixer_ch_stop</a> on the channel used for playback.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -394,7 +396,7 @@ int64_t&#160;</td><td class="memItemRight" valign="bottom"><b>__wav64_profile_dm
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Apr 6 2025 07:25:47 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Oct 1 2026 20:35:24 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

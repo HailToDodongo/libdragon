@@ -13,6 +13,7 @@
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="libdragon.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -147,6 +148,10 @@ Functions</h2></td></tr>
 <tr class="memitem:a577581d5bf9cfecaa6a1becf3da21d6c" id="r_a577581d5bf9cfecaa6a1becf3da21d6c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rspq_8c.html#a577581d5bf9cfecaa6a1becf3da21d6c">rspq_highpri_sync</a> (void)</td></tr>
 <tr class="memdesc:a577581d5bf9cfecaa6a1becf3da21d6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wait for the RSP to finish processing all high-priority queues.  <br /></td></tr>
 <tr class="separator:a577581d5bf9cfecaa6a1becf3da21d6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a57e77714622b2c343d6afc13487a4944" id="r_a57e77714622b2c343d6afc13487a4944"><td class="memItemLeft" align="right" valign="top"><a id="a57e77714622b2c343d6afc13487a4944" name="a57e77714622b2c343d6afc13487a4944"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>rspq_in_highpri</b> (void)</td></tr>
+<tr class="memdesc:a57e77714622b2c343d6afc13487a4944"><td class="mdescLeft">&#160;</td><td class="mdescRight">True if we are currently in highpri mode. <br /></td></tr>
+<tr class="separator:a57e77714622b2c343d6afc13487a4944"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a41f292fc1f7b261f84c55fc356f86acf" id="r_a41f292fc1f7b261f84c55fc356f86acf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rspq_8c.html#a41f292fc1f7b261f84c55fc356f86acf">rspq_block_begin</a> (void)</td></tr>
 <tr class="memdesc:a41f292fc1f7b261f84c55fc356f86acf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Begin creating a new block.  <br /></td></tr>
 <tr class="separator:a41f292fc1f7b261f84c55fc356f86acf"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -196,10 +201,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>rspq_block_run_rsp</b
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a429a2ce7e73db61f7fb00a1b29f026f9" id="r_a429a2ce7e73db61f7fb00a1b29f026f9"><td class="memItemLeft" align="right" valign="top"><a id="a429a2ce7e73db61f7fb00a1b29f026f9" name="a429a2ce7e73db61f7fb00a1b29f026f9"></a>
-<a class="el" href="structrsp__ucode__t.html">rsp_ucode_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>rspq_overlay_ucodes</b> [RSPQ_MAX_OVERLAY_COUNT]</td></tr>
-<tr class="memdesc:a429a2ce7e73db61f7fb00a1b29f026f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">RSPQ overlays. <br /></td></tr>
-<tr class="separator:a429a2ce7e73db61f7fb00a1b29f026f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb63e6d2192e36555934f19f1a936fb0" id="r_aeb63e6d2192e36555934f19f1a936fb0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structrsp__ucode__t.html">rsp_ucode_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rspq_8c.html#aeb63e6d2192e36555934f19f1a936fb0">rspq_overlay_ucodes</a> [<a class="el" href="rspq__constants_8h.html#aa188159bdb85fd42d9be0d348e746954">RSPQ_MAX_OVERLAYS</a>]</td></tr>
+<tr class="memdesc:aeb63e6d2192e36555934f19f1a936fb0"><td class="mdescLeft">&#160;</td><td class="mdescRight">RSPQ overlays.  <br /></td></tr>
+<tr class="separator:aeb63e6d2192e36555934f19f1a936fb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e9098c8f501bd434c39772d66c33b28" id="r_a7e9098c8f501bd434c39772d66c33b28"><td class="memItemLeft" align="right" valign="top"><a id="a7e9098c8f501bd434c39772d66c33b28" name="a7e9098c8f501bd434c39772d66c33b28"></a>
 <a class="el" href="rspq_8c.html#structrspq__ctx__t">rspq_ctx_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>rspq_ctx</b></td></tr>
 <tr class="memdesc:a7e9098c8f501bd434c39772d66c33b28"><td class="mdescLeft">&#160;</td><td class="mdescRight">Current context. <br /></td></tr>
@@ -220,13 +224,16 @@ void *&#160;</td><td class="memItemRight" valign="bottom"><b>rspq_rdp_dynamic_bu
 <a class="el" href="rspq__internal_8h.html#structrspq__block__t">rspq_block_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>rspq_block</b></td></tr>
 <tr class="memdesc:a39b062e3a4bdd3e3873623ae630fc9f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to the current block being built, or NULL. <br /></td></tr>
 <tr class="separator:a39b062e3a4bdd3e3873623ae630fc9f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4bb2ee1cdad42a176be51abf5530bc0f" id="r_a4bb2ee1cdad42a176be51abf5530bc0f"><td class="memItemLeft" align="right" valign="top"><a id="a4bb2ee1cdad42a176be51abf5530bc0f" name="a4bb2ee1cdad42a176be51abf5530bc0f"></a>
-volatile int&#160;</td><td class="memItemRight" valign="bottom"><b>__rspq_syncpoints_done</b></td></tr>
-<tr class="memdesc:a4bb2ee1cdad42a176be51abf5530bc0f"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the last syncpoint reached by RSP. <br /></td></tr>
-<tr class="separator:a4bb2ee1cdad42a176be51abf5530bc0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a87457602fcd53e23e8afb3c517b39070" id="r_a87457602fcd53e23e8afb3c517b39070"><td class="memItemLeft" align="right" valign="top"><a id="a87457602fcd53e23e8afb3c517b39070" name="a87457602fcd53e23e8afb3c517b39070"></a>
+volatile int&#160;</td><td class="memItemRight" valign="bottom"><b>__rspq_syncpoints_done</b> [4]</td></tr>
+<tr class="memdesc:a87457602fcd53e23e8afb3c517b39070"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the last syncpoint reached by RSP (plus padding). <br /></td></tr>
+<tr class="separator:a87457602fcd53e23e8afb3c517b39070"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>RSP Command queue. </p>
+<dl class="section author"><dt>Author</dt><dd>Dennis Heinze <a href="#" onclick="location.href='mai'+'lto:'+'den'+'ni'+'sjp'+'.h'+'ein'+'ze'+'@gm'+'ai'+'l.c'+'om'; return false;">denni<span class="obfuscator">.nosp@m.</span>sjp.<span class="obfuscator">.nosp@m.</span>heinz<span class="obfuscator">.nosp@m.</span>e@gm<span class="obfuscator">.nosp@m.</span>ail.c<span class="obfuscator">.nosp@m.</span>om</a> </dd>
+<dd>
+Giovanni Bajo <a href="#" onclick="location.href='mai'+'lto:'+'gio'+'va'+'nni'+'ba'+'jo@'+'gm'+'ail'+'.c'+'om'; return false;">giova<span class="obfuscator">.nosp@m.</span>nnib<span class="obfuscator">.nosp@m.</span>ajo@g<span class="obfuscator">.nosp@m.</span>mail<span class="obfuscator">.nosp@m.</span>.com</a> </dd></dl>
 <h1><a class="anchor" id="autotoc_md27"></a>
 RSP Queue: implementation</h1>
 <p>This documentation block describes the internal workings of the RSP Queue. This is useful to understand the implementation. For description of the API of the RSP queue, see <a class="el" href="rspq_8h.html" title="RSP Command queue.">rspq.h</a></p>
@@ -261,19 +268,19 @@ Internal commands</h2>
 <p>To manage the queue and implement all the various features, rspq reserves for itself the overlay ID 0x0 to implement internal commands. You can look at the list of commands and their description below. All command IDs are defined with <code>RSPQ_CMD_*</code> macros.</p>
 <h2><a class="anchor" id="autotoc_md30"></a>
 Buffer swapping</h2>
-<p>Internally, double buffering is used to implement the queue. The size of each of the buffers is RSPQ_DRAM_LOWPRI_BUFFER_SIZE. When a buffer is full, the queue engine writes a <a class="el" href="rspq__internal_8h.html#aba01db17f4a2bfbc3db60dc172972a25a58023050f9d78e7cf4dc6c6cee07b6e5" title="RSPQ command: Jump to another buffer.">RSPQ_CMD_JUMP</a> command with the address of the other buffer, to tell the RSP to jump there when it is done.</p>
-<p>Moreover, just before the jump, the engine also enqueue a <a class="el" href="rspq__internal_8h.html#aba01db17f4a2bfbc3db60dc172972a25ae0ee81ba2ae47bd82a5cf662bab63ca5" title="RSPQ Command: write SP_STATUS register.">RSPQ_CMD_WRITE_STATUS</a> command that sets the SP_STATUS_SIG_BUFDONE_LOW signal. This is used to keep track when the RSP has finished processing a buffer, so that we know it becomes free again for more commands.</p>
+<p>Internally, double buffering is used to implement the queue. The size of each of the buffers is RSPQ_DRAM_LOWPRI_BUFFER_SIZE. When a buffer is full, the queue engine writes a <a class="el" href="rspq__internal_8h.html#a1f9aebf1de3ebbf4283a4dcf73308562a58023050f9d78e7cf4dc6c6cee07b6e5" title="RSPQ command: Jump to another buffer.">RSPQ_CMD_JUMP</a> command with the address of the other buffer, to tell the RSP to jump there when it is done.</p>
+<p>Moreover, just before the jump, the engine also enqueue a <a class="el" href="rspq__internal_8h.html#a1f9aebf1de3ebbf4283a4dcf73308562ae0ee81ba2ae47bd82a5cf662bab63ca5" title="RSPQ Command: write SP_STATUS register.">RSPQ_CMD_WRITE_STATUS</a> command that sets the SP_STATUS_SIG_BUFDONE_LOW signal. This is used to keep track when the RSP has finished processing a buffer, so that we know it becomes free again for more commands.</p>
 <p>This logic is implemented in <a class="el" href="rspq_8c.html#a6d24ce57cd1b2cdb69297c97dab0eb21" title="Switch to the next write buffer for the current RSP queue.">rspq_next_buffer</a>.</p>
 <h2><a class="anchor" id="autotoc_md31"></a>
 Blocks</h2>
-<p>Blocks are implemented by redirecting <a class="el" href="rspq_8h.html#aefec193be7de05f725738beeb3775634" title="Write a new command into the RSP queue.">rspq_write</a> to a different memory buffer, allocated for the block. The starting size for this buffer is RSPQ_BLOCK_MIN_SIZE. If the buffer becomes full, a new buffer is allocated with double the size (to achieve exponential growth), and it is linked to the previous buffer via a <a class="el" href="rspq__internal_8h.html#aba01db17f4a2bfbc3db60dc172972a25a58023050f9d78e7cf4dc6c6cee07b6e5" title="RSPQ command: Jump to another buffer.">RSPQ_CMD_JUMP</a>. So a block can end up being defined by multiple memory buffers linked via jumps.</p>
-<p>Calling a block requires some work because of the nesting calls we want to support. To make the RSP ucode as short as possible, the two internal command dedicated to block calls (<a class="el" href="rspq__internal_8h.html#aba01db17f4a2bfbc3db60dc172972a25a3bcc1ebb86dbfab31f34d0153d3a9a14" title="RSPQ command: Call a block.">RSPQ_CMD_CALL</a> and <a class="el" href="rspq__internal_8h.html#aba01db17f4a2bfbc3db60dc172972a25ae3aa621c30e8ea451128c8ff98d14f44" title="RSPQ command: Return from a block.">RSPQ_CMD_RET</a>) do not manage a call stack by themselves, but only allow to save/restore the current queue position from a "save slot", whose index must be provided by the CPU.</p>
+<p>Blocks are implemented by redirecting <a class="el" href="rspq_8h.html#aefec193be7de05f725738beeb3775634" title="Write a new command into the RSP queue.">rspq_write</a> to a different memory buffer, allocated for the block. The starting size for this buffer is RSPQ_BLOCK_MIN_SIZE. If the buffer becomes full, a new buffer is allocated with double the size (to achieve exponential growth), and it is linked to the previous buffer via a <a class="el" href="rspq__internal_8h.html#a1f9aebf1de3ebbf4283a4dcf73308562a58023050f9d78e7cf4dc6c6cee07b6e5" title="RSPQ command: Jump to another buffer.">RSPQ_CMD_JUMP</a>. So a block can end up being defined by multiple memory buffers linked via jumps.</p>
+<p>Calling a block requires some work because of the nesting calls we want to support. To make the RSP ucode as short as possible, the two internal command dedicated to block calls (<a class="el" href="rspq__internal_8h.html#a1f9aebf1de3ebbf4283a4dcf73308562a3bcc1ebb86dbfab31f34d0153d3a9a14" title="RSPQ command: Call a block.">RSPQ_CMD_CALL</a> and <a class="el" href="rspq__internal_8h.html#a1f9aebf1de3ebbf4283a4dcf73308562ae3aa621c30e8ea451128c8ff98d14f44" title="RSPQ command: Return from a block.">RSPQ_CMD_RET</a>) do not manage a call stack by themselves, but only allow to save/restore the current queue position from a "save slot", whose index must be provided by the CPU.</p>
 <p>Thus, the CPU has to make sure that each CALL opcode saves the position into a save slot which will not be overwritten by nested block calls. To do this, it calculates the "nesting level" of a block at block creation time: the nesting level of a block is defined by the smallest number greater than the nesting levels of all blocks that are called within the block itself. So for instance if a block calls another block whose nesting level is 5, it will get assigned a level of 6. The nesting level is then used as call slot in both all future calls to the block, and by the RSPQ_CMD_RET command placed at the end of the block itself.</p>
 <h2><a class="anchor" id="autotoc_md32"></a>
 Highpri queue</h2>
 <p>The high priority queue is implemented as an alternative couple of buffers, that replace the standard buffers when the high priority mode is activated.</p>
-<p>When <a class="el" href="rspq_8c.html#ae546104d15d469518ac5fba15521e965" title="Start building a high-priority queue.">rspq_highpri_begin</a> is called, the CPU notifies the RSP that it must switch to the highpri queues by setting signal SP_STATUS_SIG_HIGHPRI_REQUESTED. The RSP checks for that signal between each command, and when it sees it, it internally calls <a class="el" href="rspq__internal_8h.html#aba01db17f4a2bfbc3db60dc172972a25a8d8fd35254ac74cdb0b1abdb364fb64e" title="RSPQ Command: Swap lowpri/highpri buffers.">RSPQ_CMD_SWAP_BUFFERS</a>. This command loads the highpri queue pointer from a special call slot, saves the current lowpri queue position in another special save slot, and finally clear SP_STATUS_SIG_HIGHPRI_REQUESTED and set SP_STATUS_SIG_HIGHPRI_RUNNING instead.</p>
-<p>When the <a class="el" href="rspq_8c.html#ae495b6d8ec49169f05e523fe564f9f4b" title="Finish building the high-priority queue and close it.">rspq_highpri_end</a> is called, the opposite is done. The CPU writes in the queue a <a class="el" href="rspq__internal_8h.html#aba01db17f4a2bfbc3db60dc172972a25a8d8fd35254ac74cdb0b1abdb364fb64e" title="RSPQ Command: Swap lowpri/highpri buffers.">RSPQ_CMD_SWAP_BUFFERS</a> that saves the current highpri pointer into its call slot, recover the previous lowpri position, and turns off SP_STATUS_SIG_HIGHPRI_RUNNING.</p>
+<p>When <a class="el" href="rspq_8c.html#ae546104d15d469518ac5fba15521e965" title="Start building a high-priority queue.">rspq_highpri_begin</a> is called, the CPU notifies the RSP that it must switch to the highpri queues by setting signal SP_STATUS_SIG_HIGHPRI_REQUESTED. The RSP checks for that signal between each command, and when it sees it, it internally calls <a class="el" href="rspq__internal_8h.html#a1f9aebf1de3ebbf4283a4dcf73308562a8d8fd35254ac74cdb0b1abdb364fb64e" title="RSPQ Command: Swap lowpri/highpri buffers.">RSPQ_CMD_SWAP_BUFFERS</a>. This command loads the highpri queue pointer from a special call slot, saves the current lowpri queue position in another special save slot, and finally clear SP_STATUS_SIG_HIGHPRI_REQUESTED and set SP_STATUS_SIG_HIGHPRI_RUNNING instead.</p>
+<p>When the <a class="el" href="rspq_8c.html#ae495b6d8ec49169f05e523fe564f9f4b" title="Finish building the high-priority queue and close it.">rspq_highpri_end</a> is called, the opposite is done. The CPU writes in the queue a <a class="el" href="rspq__internal_8h.html#a1f9aebf1de3ebbf4283a4dcf73308562a8d8fd35254ac74cdb0b1abdb364fb64e" title="RSPQ Command: Swap lowpri/highpri buffers.">RSPQ_CMD_SWAP_BUFFERS</a> that saves the current highpri pointer into its call slot, recover the previous lowpri position, and turns off SP_STATUS_SIG_HIGHPRI_RUNNING.</p>
 <p>Some careful tricks are necessary to allow multiple highpri queues to be pending, see <a class="el" href="rspq_8c.html#ae546104d15d469518ac5fba15521e965" title="Start building a high-priority queue.">rspq_highpri_begin</a> for details.</p>
 <h2><a class="anchor" id="autotoc_md33"></a>
 rdpq integrations</h2>
@@ -313,17 +320,29 @@ state_size</td>
 <td class="fielddoc">
 Size of the portion of DMEM used as "state". </td></tr>
 <tr><td class="fieldtype">
+<a id="a4fb6441b3451030180e1ff58fcd7f3e7" name="a4fb6441b3451030180e1ff58fcd7f3e7"></a>uint32_t</td>
+<td class="fieldname">
+state_rdram</td>
+<td class="fielddoc">
+RDRAM address of the portion of DMEM used as "state". </td></tr>
+<tr><td class="fieldtype">
+<a id="a698b06c146ace1ef11d6b7a0388da7f8" name="a698b06c146ace1ef11d6b7a0388da7f8"></a>uint32_t</td>
+<td class="fieldname">
+text_rdram</td>
+<td class="fielddoc">
+RDRAM address of the overlay's text section. </td></tr>
+<tr><td class="fieldtype">
+<a id="af8346acd399b3f7f2b1d6fc110cd00e6" name="af8346acd399b3f7f2b1d6fc110cd00e6"></a>uint16_t</td>
+<td class="fieldname">
+text_size</td>
+<td class="fielddoc">
+Size of the overlay's text section. </td></tr>
+<tr><td class="fieldtype">
 <a id="acb366b7207e3ac203f8282aa816b9536" name="acb366b7207e3ac203f8282aa816b9536"></a>uint16_t</td>
 <td class="fieldname">
 command_base</td>
 <td class="fielddoc">
 Primary overlay ID used for this overlay. </td></tr>
-<tr><td class="fieldtype">
-<a id="aa8765468f9551ae46367f675e6d726f4" name="aa8765468f9551ae46367f675e6d726f4"></a>uint16_t</td>
-<td class="fieldname">
-reserved</td>
-<td class="fielddoc">
-Unused. </td></tr>
 <tr><td class="fieldtype">
 <a id="af8d1b8d75f4a1f4f8ceaab2a91a2df22" name="af8d1b8d75f4a1f4f8ceaab2a91a2df22"></a>uint16_t</td>
 <td class="fieldname">
@@ -834,8 +853,8 @@ Current write sentinel within the active buffer. </td></tr>
 <div class="line">   <span class="comment">// to call rspq_flush once to make sure the RSP runs them (in case</span></div>
 <div class="line">   <span class="comment">// it was idling).</span></div>
 <div class="line">   <a class="code hl_function" href="rspq_8c.html#a115e1839ffd27c126ed6076e2b5de0b8">rspq_flush</a>();</div>
-<div class="ttc" id="arspq_8c_html_a115e1839ffd27c126ed6076e2b5de0b8"><div class="ttname"><a href="rspq_8c.html#a115e1839ffd27c126ed6076e2b5de0b8">rspq_flush</a></div><div class="ttdeci">void rspq_flush(void)</div><div class="ttdoc">Make sure that RSP starts executing up to the last written command.</div><div class="ttdef"><b>Definition</b> rspq.c:1026</div></div>
-<div class="ttc" id="arspq_8h_html_aefec193be7de05f725738beeb3775634"><div class="ttname"><a href="rspq_8h.html#aefec193be7de05f725738beeb3775634">rspq_write</a></div><div class="ttdeci">#define rspq_write(ovl_id, cmd_id,...)</div><div class="ttdoc">Write a new command into the RSP queue.</div><div class="ttdef"><b>Definition</b> rspq.h:397</div></div>
+<div class="ttc" id="arspq_8c_html_a115e1839ffd27c126ed6076e2b5de0b8"><div class="ttname"><a href="rspq_8c.html#a115e1839ffd27c126ed6076e2b5de0b8">rspq_flush</a></div><div class="ttdeci">void rspq_flush(void)</div><div class="ttdoc">Make sure that RSP starts executing up to the last written command.</div><div class="ttdef"><b>Definition</b> rspq.c:1000</div></div>
+<div class="ttc" id="arspq_8h_html_aefec193be7de05f725738beeb3775634"><div class="ttname"><a href="rspq_8h.html#aefec193be7de05f725738beeb3775634">rspq_write</a></div><div class="ttdeci">#define rspq_write(ovl_id, cmd_id,...)</div><div class="ttdoc">Write a new command into the RSP queue.</div><div class="ttdef"><b>Definition</b> rspq.h:399</div></div>
 </div><!-- fragment --><dl class="section note"><dt>Note</dt><dd>This is an experimental API. In the future, it might become a no-op, and flushing could happen automatically at every <a class="el" href="rspq_8h.html#aefec193be7de05f725738beeb3775634" title="Write a new command into the RSP queue.">rspq_write</a>. We are keeping it separate from <a class="el" href="rspq_8h.html#aefec193be7de05f725738beeb3775634" title="Write a new command into the RSP queue.">rspq_write</a> while experimenting more with the RSPQ API.</dd>
 <dd>
 This function is a no-op if it is called while a block is being recorded (see <a class="el" href="rspq_8h.html#a41f292fc1f7b261f84c55fc356f86acf" title="Begin creating a new block.">rspq_block_begin</a> / <a class="el" href="rspq_8h.html#a81339d69802148a09829d1c6d9a9f9f6" title="Finish creating a block.">rspq_block_end</a>). This means calling this function in a block recording context will not guarantee the execution of commands that were queued prior to starting the block. </dd></dl>
@@ -1404,10 +1423,28 @@ It is not possible to create a syncpoint from the high-priority queue due to the
 
 </div>
 </div>
+<h2 class="groupheader">Variable Documentation</h2>
+<a id="aeb63e6d2192e36555934f19f1a936fb0" name="aeb63e6d2192e36555934f19f1a936fb0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb63e6d2192e36555934f19f1a936fb0">&#9670;&#160;</a></span>rspq_overlay_ucodes</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structrsp__ucode__t.html">rsp_ucode_t</a>* rspq_overlay_ucodes[<a class="el" href="rspq__constants_8h.html#aa188159bdb85fd42d9be0d348e746954">RSPQ_MAX_OVERLAYS</a>]</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>RSPQ overlays. </p>
+<p>Registered overlays. </p>
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Apr 6 2025 07:25:47 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Oct 1 2026 20:35:24 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>

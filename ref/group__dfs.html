@@ -13,6 +13,7 @@
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="libdragon.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -144,6 +145,10 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>MAX_DIRECTORY_DEPTH</b>&#160;&#160;&#160;100</td></tr>
 <tr class="memdesc:gae77323fbbbedb3ec4f495c7156b0344f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum depth of directories supported. <br /></td></tr>
 <tr class="separator:gae77323fbbbedb3ec4f495c7156b0344f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaeda2c7261c444629775aab1fb8312e53" id="r_gaeda2c7261c444629775aab1fb8312e53"><td class="memItemLeft" align="right" valign="top"><a id="gaeda2c7261c444629775aab1fb8312e53" name="gaeda2c7261c444629775aab1fb8312e53"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>IODFS_GET_ROM_BASE</b>&#160;&#160;&#160;<a class="el" href="ioctl_8h.html#a840d10d2fed07b8a85f260031f2fa47b">_IO</a>('D', 0)</td></tr>
+<tr class="memdesc:gaeda2c7261c444629775aab1fb8312e53"><td class="mdescLeft">&#160;</td><td class="mdescRight">Base ROM Address Request ioctl Command Code. <br /></td></tr>
+<tr class="separator:gaeda2c7261c444629775aab1fb8312e53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga935cf104eafb75f357c5469f0e2e4c95" id="r_ga935cf104eafb75f357c5469f0e2e4c95"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dfs.html#ga935cf104eafb75f357c5469f0e2e4c95">FILETYPE</a>(x)&#160;&#160;&#160;((x) &amp; 3)</td></tr>
 <tr class="memdesc:ga935cf104eafb75f357c5469f0e2e4c95"><td class="mdescLeft">&#160;</td><td class="mdescRight">Macro to extract the file type from a DragonFS file flag.  <br /></td></tr>
 <tr class="separator:ga935cf104eafb75f357c5469f0e2e4c95"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -195,7 +200,7 @@ Macros</h2></td></tr>
 <p>DragonFS does not support writing, renaming or symlinking of files. It supports only file and directory types.</p>
 <p>DFS files have a maximum size of 256 MiB. Directories can have an unlimited number of files in them. Each token (separated by a / in the path) can be 243 characters maximum. Directories can be 100 levels deep at maximum. There can be 4 files open simultaneously.</p>
 <p>When DFS is initialized, it will register itself with newlib using 'rom:/' as a prefix. Files can be accessed either with standard POSIX functions (open, fopen) using the 'rom:/' prefix or the lower-level DFS API calls without prefix. In most cases, it is not necessary to use the DFS API directly, given that the standard C functions are more comprehensive. Files can be opened using both sets of API calls simultaneously as long as no more than four files are open at any one time.</p>
-<p>DragonFS does not support file compression; if you want to compress your assets, use the asset API (asset_load / <a class="el" href="asset_8h.html#ac731b2beb346c99f36fa8f355fb84509" title="Open an asset file for reading (with transparent decompression)">asset_fopen</a>). </p>
+<p>DragonFS does not support file compression; if you want to compress your assets, use the asset API (<a class="el" href="asset_8c.html#abfc5939446d9920b884df034e89428a9" title="Load an asset file (possibly uncompressing it)">asset_load</a> / <a class="el" href="asset_8h.html#ac731b2beb346c99f36fa8f355fb84509" title="Open an asset file for reading (with transparent decompression)">asset_fopen</a>). </p>
 <hr/><h2 class="groupheader">Data Structure Documentation</h2>
 <a name="structdirectory__entry" id="structdirectory__entry"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#structdirectory__entry">&#9670;&#160;</a></span>directory_entry</h2>
@@ -419,7 +424,7 @@ Array of file entries. </td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Apr 6 2025 07:25:47 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+Generated on Thu Oct 1 2026 20:35:25 for libdragon by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
 </small></address>
 </body>
 </html>
